@@ -1,0 +1,14 @@
+[submodule "dshield-mcp"]
+	path = dshield-mcp
+	url = https://github.com/datagen24/dsheild-mcp.git
+	branch = main
+
+[submodule "DShield-SIEM"]
+	path = DShield-SIEM
+	url = https://github.com/datagen24/DShield-SIEM.git
+	branch = main
+
+[submodule "dshield-misp"]
+	path = dshield-misp
+	url = https://github.com/datagen24/dshield-misp.git
+	branch = main 

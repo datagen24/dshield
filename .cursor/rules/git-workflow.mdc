@@ -1,0 +1,162 @@
+# Git Workflow and Version Management
+
+## Meta Project Git Strategy
+
+### Repository Structure
+- **Meta Repository**: Tracks overall project structure and integration
+- **Sub-modules**: Each project maintains its own git repository
+- **Integration**: Meta repo references specific commits/versions of sub-modules
+
+### Branching Strategy
+
+#### Meta Project Branches
+- `main`: Stable integration state
+- `develop`: Integration testing and development
+- `feature/*`: New features affecting multiple projects
+- `integration/*`: Cross-project integration work
+
+#### Sub-project Branches
+- Each project follows its own branching strategy
+- Coordinate releases through meta project
+- Maintain compatibility matrices
+
+### Commit Message Conventions
+
+#### Meta Project Commits
+```
+[meta] Add integration documentation for dshield-mcp v1.2.0
+[meta] Update project structure and dependencies
+[meta] Coordinate release of all sub-projects
+```
+
+#### Cross-Project Integration Commits
+```
+[integration] Update Elasticsearch schema compatibility
+[integration] Synchronize API versions across projects
+[integration] Fix cross-project authentication flow
+```
+
+### Version Management
+
+#### Semantic Versioning
+- Follow semantic versioning (MAJOR.MINOR.PATCH) across all projects
+- Coordinate major version releases
+- Maintain backward compatibility when possible
+
+#### Version Compatibility Matrix
+```yaml
+dshield-mcp: 1.2.0
+DShield-SIEM: 2.1.0
+dshield-misp: 0.5.0
+compatibility:
+  elasticsearch: ">=7.0.0,<9.0.0"
+  python: ">=3.8,<4.0"
+```
+
+### Release Process
+
+#### Coordinated Releases
+1. **Planning**: Identify which projects need updates
+2. **Development**: Work on changes in respective projects
+3. **Testing**: Test integration points thoroughly
+4. **Release**: Coordinate releases across all projects
+5. **Documentation**: Update integration documentation
+
+#### Release Checklist
+- [ ] All sub-projects are stable and tested
+- [ ] Integration tests pass
+- [ ] Documentation is updated
+- [ ] Version compatibility is verified
+- [ ] Deployment procedures are tested
+
+### Git Submodules (Optional)
+
+#### If Using Git Submodules
+```bash
+# Add sub-projects as submodules
+git submodule add https://github.com/your-org/dshield-mcp.git
+git submodule add https://github.com/your-org/DShield-SIEM.git
+git submodule add https://github.com/your-org/dshield-misp.git
+
+# Update submodules to specific versions
+git submodule update --remote
+git submodule foreach git checkout main
+```
+
+#### Submodule Management
+- Pin submodules to specific commits for stability
+- Update submodules when new features are needed
+- Test integration after submodule updates
+- Document submodule versions in meta project
+
+### Development Workflow
+
+#### Working on Individual Projects
+1. Navigate to the specific project directory
+2. Use the project's own git repository
+3. Follow the project's branching and commit conventions
+4. Test changes within the project context
+
+#### Working on Integration
+1. Work from the meta project root
+2. Consider impact on all related projects
+3. Update integration documentation
+4. Test cross-project functionality
+
+### Tagging Strategy
+
+#### Meta Project Tags
+- Tag major releases: `v1.0.0`, `v2.0.0`
+- Tag integration milestones: `integration-v1.0.0`
+- Tag compatibility releases: `compat-v1.2.0`
+
+#### Sub-project Tags
+- Each project maintains its own tagging strategy
+- Coordinate major version tags with meta project
+- Document tag relationships in meta project
+
+### Conflict Resolution
+
+#### Merge Conflicts
+- Resolve conflicts at the appropriate level
+- Update integration documentation after conflicts
+- Test integration points after conflict resolution
+- Communicate changes to all affected teams
+
+#### Version Conflicts
+- Identify incompatible versions early
+- Plan migration strategies for breaking changes
+- Maintain compatibility matrices
+- Provide migration guides for users
+
+### Documentation
+
+#### Git Documentation
+- Document branching strategies for each project
+- Maintain release notes and changelogs
+- Document integration procedures
+- Keep deployment guides current
+
+#### Version Documentation
+- Maintain compatibility matrices
+- Document breaking changes
+- Provide migration guides
+- Keep API documentation synchronized
+
+### Automation
+
+#### CI/CD Integration
+- Automate testing across all projects
+- Implement integration testing pipelines
+- Automate version compatibility checks
+- Deploy coordinated releases
+
+#### Release Automation
+- Automate version bumping across projects
+- Generate release notes automatically
+- Automate compatibility matrix updates
+- Deploy to staging and production environments
+description:
+globs:
+alwaysApply: false
+---

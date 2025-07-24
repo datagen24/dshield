@@ -1,0 +1,142 @@
+# Integration Development and Cross-Project Coordination
+
+## Integration Development Guidelines
+
+### When Working on Cross-Project Features
+- Always consider the impact on the complete data flow
+- Test integration points thoroughly
+- Update documentation for all affected projects
+- Coordinate changes with team members working on other projects
+
+### Data Flow Integration Points
+
+#### DShield-SIEM → dshield-mcp Integration
+- **Elasticsearch Queries**: Ensure query compatibility and performance
+- **Data Formats**: Maintain consistent data structures
+- **Authentication**: Shared credentials and access patterns
+- **Error Handling**: Graceful degradation when services are unavailable
+
+#### dshield-mcp → dshield-misp Integration
+- **Threat Intelligence**: Proper data enrichment and correlation
+- **IOC Sharing**: Standardized indicator formats
+- **API Compatibility**: Version management for external APIs
+- **Rate Limiting**: Respect API limits and implement caching
+
+#### dshield-misp → dshield-mcp Integration
+- **Threat Feeds**: Structured data ingestion
+- **Real-time Updates**: Event-driven architecture
+- **Data Validation**: Ensure data quality and consistency
+- **Performance**: Optimize for high-volume data processing
+
+### Configuration Management
+
+#### Shared Environment Variables
+```bash
+# Common across all projects
+DSHIELD_API_KEY=op://path/to/api-key
+ELASTICSEARCH_URL=https://elasticsearch:9200
+ELASTICSEARCH_USERNAME=op://path/to/es-user
+ELASTICSEARCH_PASSWORD=op://path/to/es-pass
+MISP_URL=https://misp:443
+MISP_API_KEY=op://path/to/misp-key
+```
+
+#### 1Password Integration
+- Use consistent naming conventions for secrets
+- Implement proper error handling for missing secrets
+- Provide clear documentation for secret setup
+- Test secret resolution in all environments
+
+### API Design Principles
+
+#### Consistent Patterns
+- Use RESTful conventions across all APIs
+- Implement proper error codes and messages
+- Maintain backward compatibility when possible
+- Version APIs appropriately
+
+#### Data Formats
+- Use JSON for all API communications
+- Implement proper schema validation
+- Maintain consistent field naming conventions
+- Document all data structures
+
+### Testing Integration Points
+
+#### Unit Testing
+- Mock external dependencies
+- Test error conditions and edge cases
+- Validate data transformations
+- Ensure proper error handling
+
+#### Integration Testing
+- Test complete data flows
+- Validate cross-project communication
+- Test failure scenarios and recovery
+- Performance testing under load
+
+#### End-to-End Testing
+- Test complete workflows from sensor to analysis
+- Validate data integrity throughout the pipeline
+- Test security controls and access patterns
+- Verify reporting and alerting functionality
+
+### Deployment Coordination
+
+#### Release Strategy
+- Coordinate releases across all projects
+- Maintain version compatibility matrices
+- Implement proper rollback procedures
+- Test integration after each deployment
+
+#### Environment Management
+- Use consistent environment naming
+- Implement proper configuration management
+- Test in staging environments before production
+- Monitor integration health post-deployment
+
+### Monitoring and Observability
+
+#### Cross-Project Monitoring
+- Implement distributed tracing
+- Monitor data flow performance
+- Track error rates and response times
+- Alert on integration failures
+
+#### Logging Standards
+- Use consistent log formats across projects
+- Implement structured logging
+- Include correlation IDs for tracing
+- Maintain proper log levels and rotation
+
+### Security Integration
+
+#### Authentication and Authorization
+- Implement consistent security patterns
+- Use shared identity providers when possible
+- Maintain proper access controls
+- Audit access patterns regularly
+
+#### Data Protection
+- Encrypt data in transit and at rest
+- Implement proper data retention policies
+- Ensure compliance with security standards
+- Regular security assessments
+
+### Documentation Requirements
+
+#### Integration Documentation
+- Document all API endpoints and data formats
+- Maintain integration guides and tutorials
+- Keep troubleshooting guides current
+- Document known issues and workarounds
+
+#### Architecture Documentation
+- Maintain current architecture diagrams
+- Document data flow patterns
+- Keep deployment guides updated
+- Document security controls and procedures
+description:
+globs:
+alwaysApply: false
+---

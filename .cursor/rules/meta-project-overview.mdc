@@ -1,0 +1,125 @@
+# Meta Project Overview and Development Guidelines
+
+## Project Structure
+This is a meta project containing three interconnected DShield security tools:
+
+- **dshield-mcp/**: AI-powered security analysis via MCP protocol
+- **DShield-SIEM/**: Elasticsearch-based data collection and storage
+- **dshield-misp/**: MISP threat intelligence platform
+
+## Development Workflow
+
+### Working with Sub-projects
+- Each sub-project has its own `.git/` directory and independent versioning
+- Work within the specific project directory for focused development
+- Use project-specific Cursor rules for targeted AI assistance
+- Coordinate integration changes through the meta project
+
+### Data Flow Architecture
+```
+DShield Sensors → DShield-SIEM → dshield-mcp → dshield-misp
+     ↓              ↓              ↓              ↓
+  Raw Logs    Structured Data   AI Analysis   Threat Intel
+```
+
+### Integration Points
+- **DShield-SIEM → dshield-mcp**: Elasticsearch queries for event data
+- **dshield-mcp → dshield-misp**: Threat intelligence enrichment
+- **dshield-misp → dshield-mcp**: IOC and threat data feeds
+
+### Configuration Management
+- Shared environment variables for common settings
+- 1Password integration across all projects
+- Centralized documentation and setup guides
+
+## Development Guidelines
+
+### When Working on Individual Projects
+1. Navigate to the specific project directory
+2. Use the project's own Cursor rules and configuration
+3. Follow the project's specific development patterns
+4. Test changes within the project context
+
+### When Working on Integration
+1. Work from the meta project root
+2. Consider cross-project dependencies
+3. Update integration documentation
+4. Test end-to-end workflows
+
+### Git Strategy
+- Meta repository tracks overall project structure
+- Sub-modules maintain independent git repositories
+- Coordinate releases and version compatibility
+- Use semantic versioning across all projects
+
+## Project-Specific Rules
+
+### dshield-mcp Rules
+- Python 3.8+ async development
+- MCP protocol compliance
+- Elasticsearch integration patterns
+- LaTeX report generation
+
+### DShield-SIEM Rules
+- ELK stack configuration
+- Docker container management
+- Log parsing and normalization
+- Data pipeline optimization
+
+### dshield-misp Rules
+- MISP platform configuration
+- Docker container orchestration
+- Threat intelligence sharing
+- Email relay integration
+
+## Best Practices
+
+### Code Organization
+- Keep project-specific code within its directory
+- Share common utilities through well-defined interfaces
+- Maintain clear separation of concerns
+- Document integration points thoroughly
+
+### Testing Strategy
+- Unit tests within each project
+- Integration tests for cross-project workflows
+- End-to-end testing for complete data flow
+- Performance testing for data pipeline
+
+### Documentation
+- Project-specific documentation in each sub-project
+- Integration documentation in the meta project
+- API documentation for cross-project communication
+- Setup and deployment guides for the complete ecosystem
+
+## Security Considerations
+
+### Secrets Management
+- Use 1Password CLI across all projects
+- Never commit secrets to any repository
+- Implement proper access controls
+- Audit secret usage regularly
+
+### Data Protection
+- Encrypt data in transit and at rest
+- Implement proper authentication and authorization
+- Follow security best practices for each technology stack
+- Regular security audits and vulnerability scanning
+
+## Deployment Strategy
+
+### Environment Setup
+1. Deploy DShield-SIEM first (data collection)
+2. Configure dshield-mcp (analysis capabilities)
+3. Deploy dshield-misp (threat intelligence)
+4. Test complete integration
+
+### Monitoring and Maintenance
+- Monitor each component independently
+- Track integration health and performance
+- Maintain consistent logging across all projects
+- Regular updates and security patches
+description:
+globs:
+alwaysApply: false
+---

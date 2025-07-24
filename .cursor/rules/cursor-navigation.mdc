@@ -1,0 +1,161 @@
+# Cursor Navigation and AI Assistance Guidelines
+
+## Meta Project Cursor Configuration
+
+### Project-Specific AI Assistance
+Each sub-project has its own `.cursor/` directory with specialized rules:
+
+- **dshield-mcp/.cursor/rules/**: 25+ rules for Python MCP development
+- **DShield-SIEM/.cursor/rules/**: 8 rules for ELK stack and SIEM development
+- **dshield-misp/**: No .cursor rules yet (newer project)
+
+### Navigation Patterns
+
+#### When Working on Individual Projects
+1. **Navigate to project directory**: `cd dshield-mcp/` or `cd DShield-SIEM/`
+2. **Use project-specific rules**: Cursor will automatically apply the project's rules
+3. **Focus on project context**: AI assistance will be tailored to the specific technology stack
+4. **Stay within project boundaries**: Work on project-specific features and functionality
+
+#### When Working on Integration
+1. **Work from meta root**: Stay in the main `dshield/` directory
+2. **Use meta project rules**: Apply integration and coordination guidelines
+3. **Consider cross-project impact**: AI will help with integration patterns
+4. **Update meta documentation**: Keep integration docs current
+
+### AI Assistance Context
+
+#### Project-Specific Context
+- **dshield-mcp**: Python async development, MCP protocol, Elasticsearch integration
+- **DShield-SIEM**: ELK stack, Docker, log parsing, data pipeline
+- **dshield-misp**: MISP platform, Docker containers, threat intelligence
+
+#### Integration Context
+- **Cross-project communication**: API design, data formats, authentication
+- **Configuration management**: Shared environment variables, 1Password integration
+- **Deployment coordination**: Release strategies, version compatibility
+- **Testing strategies**: Unit, integration, and end-to-end testing
+
+### File Organization Patterns
+
+#### Project-Specific Files
+```
+dshield-mcp/
+├── src/                    # Python source code
+├── tests/                  # Python tests
+├── docs/                   # MCP documentation
+└── .cursor/rules/          # MCP-specific rules
+
+DShield-SIEM/
+├── logstash/              # Logstash configuration
+├── elasticsearch/         # Elasticsearch setup
+├── kibana/               # Kibana configuration
+└── .cursor/rules/        # SIEM-specific rules
+
+dshield-misp/
+├── custom/               # MISP customizations
+├── docker-compose.yml    # Container orchestration
+└── setup.sh             # Setup scripts
+```
+
+#### Meta Project Files
+```
+dshield/
+├── README.md             # Meta project overview
+├── .gitignore           # Common ignore patterns
+├── .cursor/rules/       # Meta project rules
+└── docs/               # Integration documentation
+```
+
+### Development Workflow with Cursor
+
+#### Starting a New Feature
+1. **Identify scope**: Is this project-specific or cross-project?
+2. **Navigate appropriately**: Go to project directory or stay at meta root
+3. **Use relevant rules**: Let Cursor apply the appropriate rule set
+4. **Follow patterns**: Use established development patterns for the context
+
+#### Debugging and Troubleshooting
+1. **Identify context**: Which project is experiencing issues?
+2. **Navigate to project**: Use project-specific debugging tools and patterns
+3. **Check integration**: If cross-project, work from meta root
+4. **Update documentation**: Keep troubleshooting guides current
+
+#### Code Review and Refactoring
+1. **Project-specific changes**: Review within project context
+2. **Integration changes**: Review from meta project perspective
+3. **Cross-project impact**: Consider effects on other projects
+4. **Documentation updates**: Update both project and integration docs
+
+### Best Practices for Cursor Usage
+
+#### Project-Specific Development
+- Use project-specific Cursor rules for targeted assistance
+- Follow the project's established patterns and conventions
+- Leverage project-specific documentation and examples
+- Test changes within the project context
+
+#### Integration Development
+- Use meta project rules for cross-project coordination
+- Consider the complete data flow and architecture
+- Test integration points thoroughly
+- Update integration documentation
+
+#### Documentation and Communication
+- Keep project-specific docs in their respective directories
+- Maintain integration docs in the meta project
+- Use consistent documentation patterns across projects
+- Update both project and integration docs when needed
+
+### AI Prompting Strategies
+
+#### For Project-Specific Work
+```
+"I'm working on [project-name] and need to [specific task]. 
+This project uses [technology stack] and follows [specific patterns]."
+```
+
+#### For Integration Work
+```
+"I'm working on integration between [project-a] and [project-b]. 
+The data flows from [source] to [destination] and I need to [specific task]."
+```
+
+#### For Architecture Decisions
+```
+"I'm designing a new feature that affects the complete data flow:
+DShield Sensors → DShield-SIEM → dshield-mcp → dshield-misp.
+I need to [specific requirement]."
+```
+
+### Context Switching
+
+#### Between Projects
+- Clear your context when switching between projects
+- Use project-specific directories to maintain focus
+- Apply appropriate Cursor rules for each project
+- Consider integration implications when making changes
+
+#### Between Individual and Integration Work
+- Clearly identify the scope of your work
+- Use appropriate navigation patterns
+- Apply relevant rule sets
+- Maintain clear documentation of changes
+
+### Performance Considerations
+
+#### Large Codebases
+- Work within specific project directories for better performance
+- Use project-specific search and navigation
+- Leverage project-specific indexing and caching
+- Consider the impact of changes on other projects
+
+#### Integration Complexity
+- Break down complex integration tasks
+- Work on one integration point at a time
+- Test each integration point thoroughly
+- Document integration patterns and solutions
+description:
+globs:
+alwaysApply: false
+---
