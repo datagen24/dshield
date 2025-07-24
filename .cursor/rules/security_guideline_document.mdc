@@ -1,0 +1,191 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+# Security Guidelines for the DShield Security Ecosystem
+
+This document defines security best practices and requirements that must be applied throughout the design, implementation, deployment, and maintenance of the DShield Security Ecosystem (DShield-SIEM, dshield-mcp, dshield-misp).
+
+## 1. Security-By-Design Principles
+
+*   **Least Privilege**: Grant every service, container, and user only the permissions they need:
+
+    *   Elasticsearch nodes run under dedicated service accounts with index-level ACLs.
+    *   The dshield-mcp service account can only query specific indices.
+    *   MISP containers have no shell access and only needed file permissions.
+
+*   **Defense in Depth**: Layer multiple controls:
+
+    *   Network segmentation (SIEM network vs. management network).
+    *   TLS encryption everywhere plus host-level firewalls.
+    *   Application-level authentication/authorization beyond network controls.
+
+*   **Secure Defaults**: All components ship with hardened settings:
+
+    *   Disable default Elasticsearch demos or sample data.
+    *   MISP default passwords rotated at first run.
+    *   Docker Compose files enforce `read_only: true` for code volumes where possible.
+
+*   **Fail Securely**: On error, do not leak PII or internal stack traces:
+
+    *   Python aiohttp endpoints catch exceptions and return generic 5xx messages.
+    *   Logs avoid printing credentials or raw payloads.
+
+## 2. Authentication & Access Control
+
+### 2.1. Service-to-Service Authentication
+
+*   Use **mutual TLS** or **signed JWTs** for calls between dshield-mcp, DShield-SIEM, and dshield-misp.
+*   Ensure tokens contain `exp` (expiration) and `aud` (audience) claims and are signed with RS256.
+*   Validate tokens on each request; reject missing/expired/invalid signatures.
+
+### 2.2. User Authentication & RBAC
+
+*   **Kibana & MISP UI**:
+
+    *   Enforce strong passwords (minimum 12 characters, complexity rules).
+    *   Enable account lockout after 5 failed attempts.
+    *   Integrate optional MFA (TOTP) for all administrator roles.
+
+*   Define roles:
+
+    *   **SIEM-Viewer**, **SIEM-Analyst**, **MCP-Operator**, **MISP-Admin**, etc.
+    *   Enforce server-side checks for every sensitive operation; do not rely on UI controls alone.
+
+## 3. Secrets Management
+
+*   **1Password CLI** is the sole source for all credentials:
+
+    *   No secrets in `env:` or code repositories.
+    *   CI/CD pipelines fetch secrets at runtime via the 1Password CLI.
+
+*   Rotate credentials automatically every 90 days.
+
+*   Grant only the CI runner or container host a narrow 1Password role for secret access.
+
+## 4. Network & Transport Security
+
+*   **TLS Everywhere**:
+
+    *   Elasticsearch, Kibana, Logstash, aiohttp, MISP APIs all run over TLS ≥1.2.
+    *   Use certificates from a trusted CA; rotate certificates annually.
+
+*   **Firewalls & Segmentation**:
+
+    *   SIEM writes inbound only from known sensor IPs.
+    *   Management interfaces (SSH, Kibana, MISP) accessible only from restricted admin subnets.
+
+*   **Rate Limiting & DoS Protection**:
+
+    *   Apply HTTP rate limiting in aiohttp (e.g., `aiohttp-limiter`) to protect dshield-mcp API.
+    *   Configure Elasticsearch slow-log and index throttling.
+
+## 5. Input Validation & Output Encoding
+
+*   **Server-Side Validation** for every API:
+
+    *   Use Pydantic or Marshmallow schemas to validate JSON payloads in dshield-mcp.
+    *   Reject unknown fields and enforce strict type checks.
+
+*   **Prevent Injection**:
+
+    *   Use parameterized queries for Elasticsearch DSL (avoid dynamic string concatenation).
+    *   Sanitize Logstash grok and JSON filters to disallow shell interpolation.
+
+*   **Template Safety**:
+
+    *   LaTeX templates in dshield-mcp must escape untrusted values (use a whitelist of commands).
+    *   MISP event notes sanitized to prevent XSS in the UI.
+
+## 6. Data Protection & Privacy
+
+*   **Encryption at Rest**:
+
+    *   Enable Elasticsearch index encryption using the Elastic Security plugin or disk-level LUKS.
+    *   MISP database volumes encrypted at the host level.
+
+*   **Data Minimization**:
+
+    *   Only store required logs (rotate or delete old indices via ILM policies).
+    *   MISP exports strip any PII not relevant to threat intelligence.
+
+*   **Backup & Retention**:
+
+    *   Store nightly encrypted snapshots of Elasticsearch to an offsite bucket.
+    *   Define retention policies (e.g., 90 days for logs, 365 days for threat intel).
+
+## 7. API & Service Security
+
+*   **CORS Policy**: Limit origins to known management consoles.
+*   **HTTP Methods**: Enforce correct verbs (GET for safe reads, POST/PUT for writes). Reject unexpected methods (e.g., `TRACE`).
+*   **Versioning**: Expose dshield-mcp API under `/v1/` and plan for `/v2/` migration to avoid breaking changes.
+*   **Throttling & Quotas**: Per-account or per-API-key quotas to curb brute-force or scraping.
+*   **Schema Documentation**: Publish OpenAPI specs with security schemes clearly defined.
+
+## 8. Containerization & Infrastructure Hardening
+
+*   **Image Hygiene**:
+
+    *   Use minimal base images (e.g., `python:3.8-slim`, `alpine` where possible).
+    *   Scan images with Clair/Trivy in CI and block builds with high-severity CVEs.
+
+*   **Runtime Security**:
+
+    *   Run containers as non-root users.
+    *   Drop all Linux capabilities except those strictly needed.
+    *   Use Docker’s `--read-only` and `no-new-privileges` flags.
+
+*   **Host Hardening**:
+
+    *   Apply CIS Docker Benchmark recommendations.
+    *   Keep host OS and Docker engine up to date with security patches.
+
+## 9. Dependency Management
+
+*   Lock all dependencies via `Pipfile.lock` / `requirements.txt` with exact versions.
+*   Automate vulnerability scanning (e.g., GitHub Dependabot, GitLab Vulnerability Scanning).
+*   Regularly review and update dependencies; remove unused libraries.
+
+## 10. Logging, Monitoring & Auditing
+
+*   **Structured Logging**:
+
+    *   JSON log format for all services with timestamp, request ID, user/service ID, and log level.
+
+*   **Audit Trails**:
+
+    *   Record all configuration changes, user logins, and admin operations in a centralized ELK index.
+
+*   **Health Checks & Alerts**:
+
+    *   Each service exposes `/health` returning 200 only if dependencies are healthy.
+    *   Integrate with Prometheus + Alertmanager for SLA/latency/uptime alerts.
+
+## 11. CI/CD & Release Security
+
+*   **Code Reviews & Approval**:
+
+    *   Enforce mandatory code reviews for any change touching security-sensitive code (auth, crypto, secrets).
+
+*   **Build Pipeline**:
+
+    *   CI jobs run static analysis (Bandit, Flake8), SCA (snyk, OWASP Dependency Check), and compliance checks.
+
+*   **Artifact Signing**:
+
+    *   Sign Docker images and Git tags with GPG; verify signatures in staging before production deployment.
+
+## 12. Incident Response & Recovery
+
+*   Maintain documented runbooks for:
+
+    *   Compromised Elasticsearch cluster
+    *   Exposed secrets or leaked tokens
+    *   Unauthorized MISP event creation
+
+*   Establish a post-mortem process and SLA for restoring service.
+
+Adhering to these guidelines will ensure the DShield Security Ecosystem remains robust, resilient, and compliant with industry security standards throughout its lifecycle.

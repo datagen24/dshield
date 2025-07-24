@@ -1,0 +1,222 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+# Backend Structure Document
+
+## 1. Backend Architecture
+
+The DShield Security Ecosystem backend is built as a modular, containerized platform that ties together three core services. It uses a mix of event-driven pipelines and RESTful APIs to move data from raw sensor logs through analysis and into threat‐sharing workflows.
+
+*   **Modular Design**: Each component (DShield-SIEM, dshield-mcp, dshield-misp) lives in its own Git submodule and Docker container. This isolates concerns and lets us version, test, and deploy each service independently.
+
+*   **Frameworks and Patterns**:
+
+    *   **Python (3.8+) with aiohttp** for asynchronous request handling in the dshield-mcp analysis server.
+    *   **Logstash pipelines** (ELK stack) for ingestion, transformation, and enrichment of raw logs.
+    *   **RESTful APIs** between services, plus event hooks for automated workflows.
+
+*   **Scalability**:
+
+    *   Horizontal scaling of containers behind a load balancer.
+    *   Elasticsearch clustered nodes for sharding and replication of large data volumes.
+
+*   **Maintainability**:
+
+    *   Clear configuration manifest in YAML for all services.
+    *   Docker Compose orchestration keeps service definitions in one place.
+    *   Git submodules simplify upgrades and compatibility checks.
+
+*   **Performance**:
+
+    *   Asynchronous I/O in Python keeps analysis latency under one second for typical queries.
+    *   Logstash optimized pipelines handle over 100,000 events per hour without dropping data.
+    *   Elasticsearch caching and query optimizations support fast searches.
+
+## 2. Database Management
+
+*   **Elasticsearch (NoSQL)**
+
+    *   Stores all ingested security logs from DShield sensors in a time-series index.
+    *   Offers fast full-text search, aggregations, and built-in index lifecycle management (ILM).
+    *   Snapshots and automated backups to persistent volumes or object storage.
+
+*   **MySQL/MariaDB (Relational)**
+
+    *   Underpins the MISP instance for threat intelligence sharing.
+    *   Stores events, attributes, users, and permissions in normalized tables.
+    *   Regular backups via mysqldump or binary logs to ensure point-in-time recovery.
+
+*   **Access Patterns**:
+
+    *   dshield-mcp and Kibana query Elasticsearch via its HTTP API.
+    *   dshield-misp exposes its own REST API to read/write IOC data.
+    *   All inter-service calls use TLS and API keys managed by 1Password.
+
+*   **Data Management Practices**:
+
+    *   Index lifecycle policies: rollover daily or by size, then freeze or delete old indices.
+    *   Regular vacuuming and backups of the MySQL/MariaDB database.
+    *   Role-based access control (RBAC) enforced in both Elasticsearch and MISP.
+
+## 3. Database Schema
+
+### Elasticsearch Index (dshield-logs)
+
+Fields stored for each log entry:
+
+*   **@timestamp**: Date and time of the event.
+*   **sensor_id**: Identifier of the DShield sensor that generated the log.
+*   **src_ip / dst_ip**: Source and destination IP addresses.
+*   **protocol**: Network protocol (TCP, UDP, ICMP, etc.).
+*   **event_type**: Type of event (scan, attack, anomaly).
+*   **payload**: Nested object with raw log details.
+*   **geo**: Location data derived from IPs (country, region).
+
+### MISP Relational Schema (simplified)
+
+CREATE TABLE events ( id INT AUTO_INCREMENT PRIMARY KEY, uuid VARCHAR(255) NOT NULL, info TEXT, date DATETIME, distribution INT, threat_level_id INT, analysis INT );
+
+CREATE TABLE attributes ( id INT AUTO_INCREMENT PRIMARY KEY, event_id INT NOT NULL, type VARCHAR(100), category VARCHAR(100), to_ids BOOLEAN, value TEXT, FOREIGN KEY (event_id) REFERENCES events(id) );
+
+CREATE TABLE users ( id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE, role VARCHAR(50), password_hash VARCHAR(255) );
+
+(Additional tables exist for galaxies, tags, logs, etc., as defined by the MISP project.)
+
+## 4. API Design and Endpoints
+
+### dshield-mcp (Analysis Server)
+
+*   **GET /api/v1/health** — returns status of the service.
+*   **POST /api/v1/analyze** — accepts a JSON body with `start_date`, `end_date`, and optional filters; returns analysis results (campaigns, anomalies).
+*   **POST /api/v1/report** — triggers LaTeX report generation; returns a URL or binary PDF stream.
+*   **GET /api/v1/ioc?campaign={id}** — retrieves expanded Indicators of Compromise for a campaign.
+
+### DShield Public API
+
+*   **GET /logs?sensor={id}&since={timestamp}** — fetches raw sensor data for ingestion.
+
+### dshield-misp (MISP API)
+
+*   **POST /events** — create a new threat event.
+*   **GET /events/{id}** — retrieve event details.
+*   **POST /attributes/add** — add or update an IOC attribute in an event.
+*   **GET /ping** — health check endpoint.
+
+All APIs use token-based authentication over HTTPS. Credentials and API keys are stored and rotated via 1Password.
+
+## 5. Hosting Solutions
+
+*   **Container Hosts**:
+
+    *   Linux VMs (bare metal or cloud) with Docker Engine and Docker Compose installed.
+    *   Can be hosted on-premises or in public clouds (AWS EC2, Azure VMs, Google Compute Engine).
+
+*   **Benefits**:
+
+    *   **Reliability**: Docker’s restart policies automatically bring services back up on failure.
+    *   **Scalability**: Spin up more container replicas behind a load balancer as demand grows.
+    *   **Cost-Effectiveness**: Pay-as-you-go cloud instances or reuse existing hardware on-prem.
+    *   **Consistency**: Same container images used across dev, staging, and production.
+
+## 6. Infrastructure Components
+
+*   **Load Balancer / Reverse Proxy** (e.g., NGINX or HAProxy)
+
+    *   Routes traffic to Kibana, MISP, and the dshield-mcp API gateway.
+    *   Terminates TLS certificates.
+
+*   **Docker Compose**
+
+    *   Defines service relationships, networks, and volume mounts.
+
+*   **Elasticsearch Cluster**
+
+    *   Two or more nodes for high availability and distributed storage.
+
+*   **Logstash Pipelines**
+
+    *   Parsers and filters to normalize raw logs before indexing.
+
+*   **Content Delivery Network (Optional)**
+
+    *   For public-facing documentation or report downloads.
+
+*   **Caching**
+
+    *   Elasticsearch query cache and OS-level page cache for hot data.
+
+Together, these components ensure that data flows smoothly from ingestion through analysis and into user interfaces without bottlenecks.
+
+## 7. Security Measures
+
+*   **Transport Encryption (TLS)**
+
+    *   All HTTP traffic between services and clients is encrypted.
+
+*   **Encryption at Rest**
+
+    *   Elasticsearch data is encrypted on disk.
+    *   MySQL/MariaDB tablespaces are stored on encrypted volumes.
+
+*   **Secrets Management**
+
+    *   1Password CLI is used to store and rotate API keys, database credentials, and JWT secrets.
+
+*   **Authentication & Authorization**
+
+    *   Token-based auth for all APIs.
+    *   Role-based access control enforced in Kibana and MISP.
+
+*   **Network Segmentation**
+
+    *   Separate Docker networks for internal service traffic and public endpoints.
+    *   Firewall rules limit incoming and outgoing ports.
+
+*   **Audit Logging**
+
+    *   Every API call and report generation action is logged for traceability.
+
+## 8. Monitoring and Maintenance
+
+*   **Health Checks**:
+
+    *   Each container exposes `/health` or `/ping`, monitored by Docker’s restart policy or external watchdog.
+
+*   **Metrics & Logs**:
+
+    *   Elasticsearch’s built-in monitoring for cluster health and performance.
+    *   Kibana dashboards for log volume, error rates, and API latency.
+
+*   **Alerts**:
+
+    *   Trigger alerts on high index latency, service downtime, or unauthorized access attempts.
+
+*   **Backups**:
+
+    *   Scheduled snapshots of Elasticsearch indices to object storage.
+    *   Daily MySQL dumps with retention policies.
+
+*   **CI/CD Pipeline**:
+
+    *   GitHub Actions build, test, and push container images on each merge.
+    *   Automated integration tests against a staging environment.
+
+*   **Version Compatibility Checks**:
+
+    *   CI jobs verify that Git submodule versions match the compatibility matrix before merging.
+
+## 9. Conclusion and Overall Backend Summary
+
+The backend of the DShield Security Ecosystem brings together an event-driven SIEM, an AI-powered analysis engine, and a collaborative threat-sharing platform into a single, cohesive environment. By leveraging Docker containers, asynchronous Python services, Elasticsearch, and MISP, the architecture delivers:
+
+*   **Scalable Data Ingestion**: Logstash and Elasticsearch handle high volumes of threat telemetry.
+*   **Fast, Automated Analysis**: dshield-mcp’s REST APIs and LaTeX reporting pipeline generate insights in near real-time.
+*   **Collaborative Intelligence Sharing**: MISP integrates with external feeds and internal workflows to enrich and distribute IOCs.
+*   **Rock-Solid Security**: TLS, encryption at rest, 1Password-managed secrets, and strict RBAC keep data protected.
+*   **Ease of Maintenance**: Clear Docker Compose definitions, Git submodules, and a robust CI/CD pipeline ensure consistent deployments and straightforward updates.
+
+This setup aligns with the project’s goals of end-to-end threat detection, analysis, and sharing—delivering a reliable, maintainable, and high-performance backend that security teams can trust.

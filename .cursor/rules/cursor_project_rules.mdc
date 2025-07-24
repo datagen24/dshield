@@ -1,0 +1,183 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+## Project Overview
+
+*   **Type:** cursor_project_rules
+*   **Description:** A comprehensive security platform for DShield honeypot environments, orchestrating DShield-SIEM, dshield-mcp, and dshield-misp into an end-to-end threat detection, analysis, and intelligence sharing ecosystem.
+*   **Primary Goal:** Deliver a containerized, modular architecture that ingests DShield sensor data, performs AI-driven analysis, generates automated reports, and facilitates threat intelligence exchange with robust security and versioning practices.
+
+## Project Structure
+
+### Framework-Specific Routing
+
+*   **Directory Rules:**
+
+    *   **<aiohttp@3.x>:** Define REST routes under `dshield_mcp/routes/[endpoint].py` using `web.RouteTableDef` and register in `dshield_mcp/app.py`.
+    *   **<Bash@5.x>:** Organize automation scripts in `scripts/[task].sh` with `set -euo pipefail` and `getopts` for argument parsing.
+    *   **Docker Compose v3.8:** Place `docker/docker-compose.yml` to declare services, networks, and volumes in a single file.
+
+### Core Directories
+
+*   **Versioned Structure:**
+
+    *   `dshield-siem/`: ELK stack—Logstash pipelines, Elasticsearch config, Kibana dashboard exports.
+    *   `dshield-mcp/`: Python 3.8+ service code, `Dockerfile`, `routes/`, LaTeX templates, AI analysis modules.
+    *   `dshield-misp/`: MISP container config, 1Password integration scripts, `Dockerfile`.
+    *   `config/`: Central YAML manifest for sensor endpoints, credentials, version compatibility matrix.
+    *   `docker/`: Docker Compose orchestration files and helper scripts.
+    *   `docs/`: Project documentation (setup, integration, troubleshooting).
+    *   `scripts/`: Utility and CI/CD scripts (e.g., secret rotation, migrations).
+    *   `submodules/`: Git submodule pointers to each core component.
+
+### Key Files
+
+*   **Stack-Versioned Patterns:**
+
+    *   `docker-compose.yml`: Docker Compose v3.8—defines all service, volume, and network configurations.
+    *   `config/manifest.yml`: Unified configuration manifest with version pins and connection parameters.
+    *   `dshield_siem/logstash/pipeline.conf`: Logstash ingestion pipeline for DShield sensor logs.
+    *   `dshield_mcp/app.py`: aiohttp application entry—registers routes and middleware.
+    *   `dshield_mcp/latex_template.tex`: Base LaTeX template for PDF report generation.
+    *   `dshield_misp/Dockerfile`: Container build for MISP instance with API v2.4+ support.
+    *   `scripts/rotate-secrets.sh`: Bash script for automated 1Password credential fetching and rotation.
+    *   `docs/version-compatibility.md`: Detailed matrix of component and dependency versions.
+
+## Tech Stack Rules
+
+*   **Version Enforcement:**
+
+    *   python@3.8+: use virtual environments, type hints, `asyncio`/`aiohttp`, avoid deprecated syntax.
+    *   <elasticsearch@7.x>/8.x: match Python client to cluster version; enable TLS and ILM policies.
+    *   <logstash@7.x>: pin plugin versions, modularize pipelines, test locally.
+    *   <kibana@7.x>: export dashboards as JSON, version-control exports.
+    *   misp@2.4+: containerize with `Dockerfile`, enforce API v2.4+ for automation.
+    *   docker@20.10+ & docker-compose@1.29+: use Compose file version 3.8, named volumes, restart policies.
+    *   <1password-cli@2.x>: restrict access tokens, fetch secrets only via CLI in scripts.
+    *   latex@TeX Live 2021+: include required packages (amsmath, graphicx), validate outputs in CI.
+    *   <bash@5.x>: enforce `set -euo pipefail`, use `getopts` for args.
+
+## PRD Compliance
+
+*   **Non-Negotiable:**
+
+    *   "Requires availability of Elasticsearch 7.x or 8.x.": must support both major versions with pinned client.
+    *   "MISP version must support Docker deployment and API v2.4+.": container image and automation workflows rely on this API.
+    *   "Containerized deployment of: DShield-SIEM, dshield-mcp, dshield-misp.": all core components must run under Docker Compose.
+
+## App Flow Integration
+
+*   **Stack-Aligned Flow:**
+
+    *   Data Ingestion Flow → `dshield_siem/logstash/pipeline.conf` parses and forwards sensor logs to Elasticsearch.
+    *   Analysis Flow → `dshield_mcp/app.py` (aiohttp) queries Elasticsearch, applies ML models, generates reports.
+    *   Reporting Flow → `dshield_mcp/latex_template.tex` rendered by `report_generator.py` into PDF.
+    *   Threat Exchange Flow → `dshield-misp/Dockerfile` container communicates with dshield-mcp via MISP API.
+
+## Best Practices
+
+*   Python 3.8+
+
+    *   Use virtual environments and type hints (mypy).
+    *   Apply `async/await` patterns; avoid blocking calls.
+    *   Enforce code style with black and lint with flake8.
+
+*   Bash
+
+    *   Begin scripts with `#!/usr/bin/env bash` and `set -euo pipefail`.
+    *   Use `getopts` for robust argument parsing.
+    *   Log operations and handle errors gracefully.
+
+*   Elasticsearch
+
+    *   Implement Index Lifecycle Management (ILM).
+    *   Optimize shard counts and mappings for use-case.
+    *   Enable TLS and role-based access.
+
+*   Logstash
+
+    *   Pin pipeline and plugin versions in `pipeline.conf`.
+    *   Modularize filters and outputs.
+    *   Validate configs via `logstash --config.test_and_exit`.
+
+*   Kibana
+
+    *   Version dashboards alongside code.
+    *   Use role-based access controls.
+    *   Export and import dashboards via API in CI.
+
+*   MISP
+
+    *   Pin container image tags; store API keys in 1Password.
+    *   Automate feed imports and exports.
+    *   Secure web UI with HTTPS and strong credentials.
+
+*   Docker
+
+    *   Write minimal, multi-stage Dockerfiles.
+    *   Scan images with vulnerability tools.
+    *   Use non-root users inside containers.
+
+*   Docker Compose
+
+    *   Use file version `3.8`.
+    *   Name networks and volumes explicitly.
+    *   Configure `restart: unless-stopped` policies.
+
+*   1Password
+
+    *   Use CLI for all secret retrieval; never commit secrets.
+    *   Apply least privilege to service tokens.
+    *   Rotate credentials on schedule.
+
+*   LaTeX
+
+    *   Modularize templates; store in source control.
+    *   Validate PDF generation in CI pipelines.
+    *   Limit package dependencies to necessary ones.
+
+*   DShield API
+
+    *   Implement exponential backoff and caching.
+    *   Rate-limit requests to avoid throttling.
+    *   Log API errors and metrics.
+
+*   aiohttp
+
+    *   Centralize error handling with middleware.
+    *   Validate requests and responses (JSON schema).
+    *   Use graceful shutdown hooks.
+
+## Rules
+
+*   Derive folder and file patterns **directly** from exact versions in `techStackDoc`.
+*   All services must be containerized and orchestrated via a single `docker-compose.yml` (v3.8).
+*   Do not mix routing patterns or frameworks—Python code lives under `dshield-mcp/`, Bash under `scripts/`, Docker Compose under `docker/`.
+*   Pin Git submodules to tags or commits; disallow floating branches.
+*   Enforce a single YAML style in `config/manifest.yml`—choose block or inline consistently.
+*   Every directory containing code must include a `README.md` detailing its purpose and usage.
+*   Secure all secrets via 1Password CLI; no hardcoded credentials in code or configs.
+*   Follow branch naming conventions: `feature/`, `bugfix/`, `release/`.
+*   Validate all configs and templates in CI before merge (Logstash test, LaTeX compile, docker-compose config).
+
+## Rules Metrics
+
+Before starting the project development, create a metrics file in the root of the project called `cursor_metrics.md`.
+
+# Rules Metrics
+
+## Usage
+
+The number of times rules is used as context
+
+*   rule-name.mdc: 0
+*   another-rule.mdc: 0
+*   ...other rules
+
+### Instructions:
+
+*   Each time a cursor rule is used as context, update the count in `cursor_metrics.md`.

@@ -1,0 +1,157 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+# Tech Stack Document
+
+This document explains the technologies chosen for the DShield Security Ecosystem in simple terms. You don’t need a technical background to understand why each piece was picked and how it helps the overall system.
+
+## 1. Frontend Technologies
+
+Although this platform is largely backend-focused, it provides several user-facing interfaces to view data and reports:
+
+*   **Kibana Dashboards**
+
+    *   Part of the ELK stack (Elasticsearch, Logstash, Kibana).
+    *   Lets users explore, graph, and filter security logs in real time through a web browser.
+    *   No coding needed—just point and click to build visualizations.
+
+*   **MISP Web Interface**
+
+    *   The standard browser-based UI for the Malware Information Sharing Platform (MISP).
+    *   Allows security teams to review, tag, and export threat indicators easily.
+    *   Built-in forms and tables make it simple to navigate shared intelligence.
+
+*   **PDF Reports via LaTeX Templates**
+
+    *   Automated reports are generated in high-quality PDF format.
+    *   Uses LaTeX under the hood, but end users only see the finished documents.
+    *   Reports include charts from Kibana and summaries of AI-driven findings.
+
+## 2. Backend Technologies
+
+These are the core engines that collect data, run analyses, and store everything safely:
+
+*   **Python (3.8+) with aiohttp**
+
+    *   Powers the `dshield-mcp` component for AI-driven threat hunting.
+    *   Asynchronous aiohttp framework handles many queries at once without slowing down.
+    *   Hosts RESTful endpoints so other parts of the system can ask for analysis or reports.
+
+*   **Bash Scripts**
+
+    *   Automate routine tasks like spinning up containers, rotating credentials, and running tests.
+    *   Easy to modify and read for anyone familiar with a command line.
+
+*   **Elasticsearch**
+
+    *   The central data store for all ingested security logs.
+    *   Designed to index large volumes of data quickly and allow fast searches.
+
+*   **Logstash**
+
+    *   Collects raw logs from DShield sensors, parses them, and sends them into Elasticsearch.
+    *   Includes built-in filters to normalize and enrich incoming data.
+
+*   **MISP (Malware Information Sharing Platform)**
+
+    *   Dedicated threat-sharing database and API.
+    *   Stores Indicators of Compromise (IOCs) and supports automated syncing with other sources.
+
+*   **Git Submodules**
+
+    *   Manages the three main components (`DShield-SIEM`, `dshield-mcp`, `dshield-misp`) as separate projects within one repository.
+    *   Ensures each component can be versioned and updated independently without breaking the others.
+
+*   **DShield Public API**
+
+    *   Pulls sensor data directly from the official DShield feed when needed.
+    *   Provides up-to-date log data for analysis.
+
+## 3. Infrastructure and Deployment
+
+How the system is hosted, updated, and scaled:
+
+*   **Docker & Docker Compose**
+
+    *   Packages each component into its own container for consistent setup anywhere (development, testing, production).
+    *   Docker Compose defines how containers talk to each other, which ports to open, and where to store data.
+
+*   **GitHub Repository & Version Control**
+
+    *   All code lives on GitHub, making it easy to track changes and collaborate.
+    *   Git submodules help tie together the three core tools under one meta-project.
+
+*   **CI/CD Pipeline (e.g., GitHub Actions)**
+
+    *   Automatically builds and tests container images when code is updated.
+    *   Runs basic health checks and linting before allowing a new release.
+    *   Ensures only tested, working code gets deployed.
+
+*   **Health Checks & Restart Policies**
+
+    *   Each container exposes a simple “I’m alive” endpoint.
+    *   Docker is configured to automatically restart any service that fails.
+
+## 4. Third-Party Integrations
+
+External services that boost functionality and security:
+
+*   **1Password CLI**
+
+    *   Securely stores and fetches credentials (API keys, database passwords).
+    *   Automates secret rotation without hard-coding sensitive data.
+
+*   **External Threat Intelligence Feeds**
+
+    *   dshield-misp can sync with public or partner feeds to enrich local threat data.
+    *   Ensures the system has the latest Indicators of Compromise.
+
+*   **DShield Official API**
+
+    *   Provides live sensor data for ingestion into the SIEM component.
+
+## 5. Security and Performance Considerations
+
+Measures taken to keep data safe and the system responsive:
+
+*   **TLS Encryption**
+
+    *   All communication between components (e.g., Python service ↔ Elasticsearch) happens over secure HTTPS.
+
+*   **Encryption at Rest**
+
+    *   Elasticsearch is configured to encrypt stored data so disks can’t be read if stolen.
+
+*   **Role-Based Access Control (RBAC)**
+
+    *   Kibana and MISP enforce user roles and permissions to limit who can see or change what.
+
+*   **Automated Credential Rotation**
+
+    *   1Password integration rotates API keys and passwords on a schedule to reduce risk of leaked secrets.
+
+*   **Resource Limits & Performance Tuning**
+
+    *   Elasticsearch JVM heap limits defined to prevent out-of-memory crashes.
+    *   Logstash pipelines optimized to handle at least 100,000 events per hour.
+    *   dshield-mcp uses asynchronous calls to keep analysis latency under 1 second for typical queries.
+
+*   **API Rate Limiting & Backoff**
+
+    *   Pulls from the DShield API use a backoff strategy to respect rate limits and avoid service interruptions.
+
+## 6. Conclusion and Overall Tech Stack Summary
+
+The DShield Security Ecosystem brings together a carefully chosen set of tools to provide end-to-end threat detection, analysis, and sharing:
+
+*   A **containerized** approach (Docker, Docker Compose) guarantees consistent deployments.
+*   **Elasticsearch + Logstash + Kibana** form a powerful SIEM backbone for data storage and visualization.
+*   **Python (aiohttp) + Bash** scripts run the AI-driven analysis server, automating report generation with **LaTeX**.
+*   **MISP** handles collaborative threat intelligence, syncing with external feeds and exposing a user-friendly web UI.
+*   **1Password** keeps secrets safe, and TLS plus encryption-at-rest protect data in transit and at rest.
+
+Every component was picked to meet the goals of reliability, scalability, and security, while keeping user interactions as straightforward as possible. This stack ensures your security team can focus on insights and response—rather than wrestling with infrastructure.

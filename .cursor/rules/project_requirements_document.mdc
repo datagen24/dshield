@@ -1,0 +1,204 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+# Project Requirements Document (PRD)
+
+## 1. Project Overview
+
+**Paragraph 1**\
+The DShield Security Ecosystem is a modular, containerized platform built to deliver end-to-end threat detection, analysis, and intelligence sharing for honeypot environments. It orchestrates three core components—DShield-SIEM, dshield-mcp, and dshield-misp—using Git submodules for version control and Docker Compose for deployment. Security teams can ingest raw logs from DShield sensors into Elasticsearch, run AI-powered analysis to uncover campaigns and Indicators of Compromise (IOCs), and share refined intelligence with partners via a MISP instance.
+
+**Paragraph 2**\
+This ecosystem is being built to streamline the lifecycle of threat telemetry—from ingestion through automated reporting and collaborative sharing—while enforcing best practices in release management, security, and documentation. Key objectives include reliable data collection at scale, actionable AI-driven insights, seamless component integration, and rock-solid security (secrets management, encryption, access controls). Success will be measured by stable deployments, accurate threat detections, sub-second query responses, and a clear version compatibility matrix.
+
+## 2. In-Scope vs. Out-of-Scope
+
+### In-Scope (Version 1.0)
+
+*   Containerized deployment of:
+
+    *   DShield-SIEM (Elasticsearch + Logstash + Kibana)
+    *   dshield-mcp (Python/aiohttp, Elasticsearch queries, LaTeX reporting)
+    *   dshield-misp (Dockerized MISP + 1Password integration)
+
+*   Core data flow:
+
+    1.  Sensor data → Logstash → Elasticsearch
+    2.  Elasticsearch → dshield-mcp → AI analysis → LaTeX reports
+    3.  dshield-mcp ↔ dshield-misp intelligence exchange
+
+*   Basic dashboards in Kibana for data visualization.
+
+*   Automated LaTeX-based report generation.
+
+*   RESTful API endpoints for inter-component communication.
+
+*   Centralized configuration manifest for all three services.
+
+*   Version compatibility matrix and release guidelines.
+
+*   Secrets management via 1Password (automated credential rotation).
+
+*   Health check endpoints and basic logging.
+
+### Out-of-Scope (Phase 2+)
+
+*   Multi-tenant or role-based UI beyond basic Kibana.
+*   Mobile or desktop client applications.
+*   Custom plugin development for Kibana or MISP.
+*   High-availability clustering or Kubernetes orchestration.
+*   Advanced machine-learning model training pipelines.
+*   Third-party cloud integrations (e.g., AWS/GCP SIEM connectors).
+*   SAML/SSO or OAuth identity provider integrations.
+
+## 3. User Flow
+
+**Paragraph 1**\
+A security administrator clones the meta-project repository and runs `docker-compose up` to launch DShield-SIEM, dshield-mcp, and dshield-misp containers. They configure sensor endpoints in a central YAML manifest, which Logstash uses to pull DShield logs into Elasticsearch. Once data is flowing, the admin opens Kibana (via a browser) to verify logs and dashboards.
+
+**Paragraph 2**\
+Next, the administrator triggers an AI analysis job in dshield-mcp through its REST API or CLI wrapper. dshield-mcp retrieves recent logs, runs anomaly detection and IOC expansion, and outputs a PDF report (via LaTeX). Simultaneously, the component exchanges threat feeds with dshield-misp, where enriched indicators appear in the MISP UI. The admin can review, export, or share these indicators with external partners from within MISP.
+
+## 4. Core Features
+
+*   **Data Collection & Storage**
+
+    *   Logstash pipelines ingest and parse DShield sensor logs into Elasticsearch.
+    *   Kibana dashboards for real-time visualization and ad-hoc querying.
+
+*   **AI-Powered Analysis**
+
+    *   dshield-mcp (Python 3.8+, aiohttp) asynchronously queries Elasticsearch.
+    *   Natural language processing and pattern recognition detect campaigns and anomalies.
+    *   IOC expansion and correlation across events.
+
+*   **Automated Reporting**
+
+    *   LaTeX templates generate professional PDF reports with embedded Kibana graphs.
+    *   Customizable report structures and scheduling.
+
+*   **Threat Intelligence Sharing**
+
+    *   dshield-misp (Dockerized MISP) imports and enriches threats via MISP API.
+    *   Automated synchronization workflows with external threat feeds.
+
+*   **Secrets Management**
+
+    *   1Password CLI integration for fetching and rotating credentials.
+    *   Encrypted storage of API keys and database passwords.
+
+*   **Seamless Integration**
+
+    *   Git submodules manage component versions.
+    *   RESTful APIs for communication and event-driven hooks.
+
+*   **Containerized Deployment**
+
+    *   Docker Compose orchestrates service startup, networking, and volumes.
+    *   Health check endpoints and structured logging for monitoring.
+
+## 5. Tech Stack & Tools
+
+*   **Languages & Frameworks**
+
+    *   Python ≥ 3.8 (async / aiohttp)
+    *   Bash scripts for automation
+
+*   **Data Storage & SIEM**
+
+    *   Elasticsearch (data index)
+    *   Logstash (ingestion pipeline)
+    *   Kibana (visualization)
+
+*   **Threat Intelligence**
+
+    *   MISP (Malware Information Sharing Platform)
+
+*   **Containerization**
+
+    *   Docker, Docker Compose
+
+*   **Secrets Management**
+
+    *   1Password CLI
+
+*   **Reporting**
+
+    *   LaTeX (PDF generation)
+
+*   **APIs & Networking**
+
+    *   DShield public API (sensor data pull)
+    *   RESTful endpoints (dshield-mcp ↔ others)
+
+*   **IDE & AI Coding Assistants**
+
+    *   Claude Code (terminal-based AI code assistant)
+    *   Cursor (IDE plugin for AI suggestions)
+    *   Xcode (if customizing Mac-specific scripts or automation)
+
+## 6. Non-Functional Requirements
+
+*   **Performance**
+
+    *   Ingestion throughput: ≥ 100,000 events/hour.
+    *   Query latency: < 1 second for typical Elasticsearch searches.
+
+*   **Security**
+
+    *   All inter-service traffic over TLS.
+    *   Data encrypted at rest in Elasticsearch.
+    *   Role-based access controls for Kibana and MISP.
+
+*   **Reliability**
+
+    *   Health checks must return within 5 seconds.
+    *   Automatic restart policies on container crashes.
+
+*   **Usability**
+
+    *   Clear, step-by-step setup instructions.
+    *   Self-documenting configuration manifest.
+
+*   **Compliance**
+
+    *   Adhere to OWASP Container Security guidelines.
+    *   Logging audit trails for report generation and API access.
+
+## 7. Constraints & Assumptions
+
+*   **Constraints**
+
+    *   Requires availability of Elasticsearch 7.x or 8.x.
+    *   MISP version must support Docker deployment and API v2.4+.
+    *   1Password CLI access set up in target environment.
+
+*   **Assumptions**
+
+    *   Target host has Docker Engine and Docker Compose installed.
+    *   Network connectivity to DShield public API.
+    *   Users have basic familiarity with CLI and container workflows.
+
+## 8. Known Issues & Potential Pitfalls
+
+*   **API Rate Limits**
+
+    *   DShield public API may throttle high-volume pulls. Mitigation: implement backoff and caching.
+
+*   **Version Drift**
+
+    *   Upgrading individual submodules independently can break integration. Mitigation: enforce Git submodule pinning and CI checks.
+
+*   **Resource Exhaustion**
+
+    *   Elasticsearch may consume large RAM by default. Mitigation: define JVM heap limits and index lifecycle policies.
+
+*   **LaTeX Dependencies**
+
+    *   PDF generation can fail if essential LaTeX packages are missing. Mitigation: bake required TeX Live packages into the dshield-mcp Docker image.
+
+This PRD provides a clear blueprint for the DShield Security Ecosystem’s first version. With these requirements, an AI model can generate design documents, code scaffolding, and comprehensive guides without ambiguity.

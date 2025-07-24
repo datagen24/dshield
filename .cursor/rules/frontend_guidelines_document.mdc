@@ -1,0 +1,131 @@
+---
+description: Apply these rules when making changes to the project
+globs:
+alwaysApply: true
+---
+
+Update this rule if user requested changes to the project requirement, etc.
+# Frontend Guideline Document
+
+This document describes how we build and maintain the web-facing parts of the DShield Security Ecosystem. It explains the overall structure, the way we design and style pages, how components fit together, how we manage data and navigation, and how we keep things fast and reliable.
+
+## 1. Frontend Architecture
+
+### 1.1 Overview
+
+*   We use a **micro-frontend** approach. Each major area (the DShield Dashboard shell, Kibana dashboards, and the MISP interface) runs as a separate React application. A lightweight React “shell” (the DShield Dashboard) stitches them together, loading each piece dynamically.
+*   **Webpack Module Federation** powers our code sharing. Common UI elements, utility functions, and styles live in a shared package so that updates propagate across all micro-frontends.
+*   All services run in Docker containers alongside their backends. The shell and micro-frontends are served via Nginx for caching static files and handling SSL/TLS.
+
+### 1.2 Scalability, Maintainability & Performance
+
+*   **Scalability:** New UIs (for example, a future analytics module) plug into the shell without touching existing code. Micro-frontends can be deployed independently and scaled separately.
+*   **Maintainability:** A single shared component library and clear folder structure keep code organized. Teams can work in parallel on different micro-frontends without merge conflicts.
+*   **Performance:** We use code-splitting and lazy loading of each micro-frontend. The shell only pulls down what’s needed when users navigate to a new area.
+
+## 2. Design Principles
+
+We follow three guiding ideas for all user-facing pages:
+
+1.  **Usability** – Interfaces are intuitive. Buttons and menus are consistently placed. We minimize clicks to reach common tasks, like launching an AI analysis or viewing a Kibana chart.
+2.  **Accessibility** – We use semantic HTML, proper ARIA labels, and color contrast ratios that meet WCAG 2.1 AA standards. Keyboard navigation and screen-reader support are tested on every release.
+3.  **Responsiveness** – UIs adapt to a wide range of screen sizes. We use a mobile-first CSS strategy so pages degrade gracefully on small screens and scale up on desktops.
+
+### Applying These Principles
+
+*   Clear headings and labels on forms and dashboards.
+*   Focus indicators on interactive elements for keyboard users.
+*   Flexible grid layouts based on CSS Flexbox and Grid.
+
+## 3. Styling and Theming
+
+### 3.1 Styling Approach
+
+*   We write styles in **SASS** (.scss files) using the **BEM** naming convention. This avoids clashes and makes it clear which block, element, or modifier a rule applies to.
+*   Shared variables (colors, fonts, spacings) live in a central `_variables.scss` file and feed into each micro-frontend.
+
+### 3.2 Theming
+
+*   A single **flat-design** theme across all frontends ensures a cohesive look and feel.
+*   Themes are implemented via CSS custom properties (variables). We define them at the root level, so switching between a light or dark theme is as simple as toggling a CSS class on `<body>`.
+
+### 3.3 Style Details
+
+*   Style Style: **Modern flat design** with subtle shadows and clean lines.
+*   Color Palette: • Primary Blue: #0052CC\
+    • Secondary Green: #23C776\
+    • Neutral Light: #F7F9FC\
+    • Neutral Medium: #E1E8F5\
+    • Neutral Dark: #323B48\
+    • Warning/Alert: #FF4D4F
+*   Font Family: **Inter**, with fallbacks to system sans-serifs (`font-family: 'Inter', sans-serif;`).
+*   Spacing Scale: Multiples of 4px (4, 8, 12, 16, 24, 32, etc.) for consistent padding and margins.
+
+## 4. Component Structure
+
+### 4.1 Organization
+
+In each micro-frontend repository:
+
+*   `/src/components/atoms` – Buttons, inputs, icons, labels.
+*   `/src/components/molecules` – Form groups, chart widgets, card elements.
+*   `/src/components/organisms` – Full sections like the login form, dashboard panels, navigation menus.
+*   `/src/pages` – Page-level components tied to routes.
+*   `/src/utils` – Helper functions (date formatting, API clients).
+
+### 4.2 Reusability
+
+*   We build **atomic** components that accept props for variations (size, color). This reduces duplication and speeds up on-boarding.
+*   A **design token** system (colors, typography, spacing) ensures that when tokens update, every component reflects the change.
+
+## 5. State Management
+
+*   **Local state** inside components uses React’s `useState` and `useReducer` hooks.
+*   **Shared state** (for example, user session data or UI theme) uses React’s **Context API**.
+*   Where we have complex data flows (for example, real-time data in the Dashboard shell), we use **Redux Toolkit** for structured stores, slices, and middleware. This keeps logging, persistence, and debugging consistent.
+
+## 6. Routing and Navigation
+
+*   We use **React Router v6** for client-side routing.
+*   The shell defines top-level routes (`/dashboard`, `/misp`, `/reports`). Each micro-frontend registers its own nested routes under that path.
+*   Navigation menus highlight the active route. We prefetch the JavaScript bundle for the next most likely micro-frontend to improve perceived speed.
+
+## 7. Performance Optimization
+
+*   **Lazy Loading & Code Splitting:** We wrap micro-frontends and large components in `React.lazy()` and `Suspense`.
+*   **Tree Shaking:** We import individual functions or components rather than entire libraries.
+*   **Asset Optimization:** Images and icons are compressed and served in modern formats (WebP or SVG when appropriate).
+*   **Caching:** We set long cache-control headers on JS/CSS assets and use file name hashing for cache-busting on deploy.
+
+## 8. Testing and Quality Assurance
+
+### 8.1 Unit Tests
+
+*   **Jest** + **React Testing Library**: We write tests for each component’s rendering, props handling, and event callbacks.
+*   Aim for a high coverage on critical components (forms, navigation, API clients).
+
+### 8.2 Integration Tests
+
+*   We build integration tests for workflows that span multiple components (e.g., log in, load a Kibana chart, trigger an analysis job).
+*   These live alongside unit tests and run in CI on every PR.
+
+### 8.3 End-to-End (E2E) Tests
+
+*   **Cypress** is our tool of choice. We script real-user flows: visiting the Dashboard, changing themes, exporting a PDF report link, and verifying the response.
+*   We run E2E tests nightly against a staging environment.
+
+### 8.4 Linting & Formatting
+
+*   **ESLint** with a shared config enforces best practices and catches errors early.
+*   **Prettier** ensures consistent code style across teams and micro-frontends.
+
+## 9. Conclusion and Overall Frontend Summary
+
+Our frontend setup for the DShield Security Ecosystem is designed to be:
+
+*   **Modular & Scalable:** Micro-frontends let teams work independently and add new features without risk to existing areas.
+*   **Consistent & Maintainable:** A shared component library, design tokens, and strict naming conventions keep the look and feel uniform.
+*   **Performant & Accessible:** Lazy loading, caching, and WCAG-compliant design principles give every user a fast, inclusive experience.
+*   **Tested & Reliable:** With unit, integration, and E2E tests in place, we catch regressions before they reach production.
+
+By following these guidelines, any frontend developer—regardless of their background—can confidently contribute to, extend, or maintain the DShield user interfaces without confusion.
